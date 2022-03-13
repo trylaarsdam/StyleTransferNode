@@ -4,7 +4,13 @@ import tensorflow_hub as tf_hub
 import PIL
 import os
 
-def load_image(image_path, image_size=(1920, 1080)):
+image_res = [1920, 1080]
+input_filetype = '.png'
+input_directory = './input/'
+output_directory = './output/'
+style_location = './style.jpg'
+
+def load_image(image_path, image_size=(image_res[0], image_res[1])):
   img = tf.io.decode_image(
     tf.io.read_file(image_path),
     channels=3, dtype=tf.float32)[tf.newaxis, ...]
@@ -20,19 +26,19 @@ def export_image(tf_img):
     return PIL.Image.fromarray(img)
 
 
-directory = os.fsencode("./input")
-style_image = load_image("./style.jpg")
+directory = os.fsencode(input_directory)
+style_image = load_image(style_location)
 stylize_model = tf_hub.load('tf_model')
 
 def cycleInputFolder():
   for file in os.listdir(directory):
     filename = os.fsdecode(file)
-    if filename.endswith(".png"):
+    if filename.endswith(input_filetype):
       print("Processing: " + filename)
-      original_image = load_image("./input/" + filename)
+      original_image = load_image(input_directory + filename)
       results = stylize_model(tf.constant(original_image), tf.constant(style_image))
       stylized_photo = results[0]
-      export_image(stylized_photo).save("./output/" + filename)
+      export_image(stylized_photo).save(output_directory + filename)
 
 
 if __name__ == "__main__":
